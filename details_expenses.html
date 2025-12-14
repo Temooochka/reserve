@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Детализация расходов</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        /* Общие стили и переменные */
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+        }
+
+        :root {
+            --alfa-red: #EE3124;
+            --text-color: #333;
+            --light-gray-bg: #f7f7f7;
+            --card-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            /* Цвета для категорий */
+            --category-food: #EE3124;
+            --category-kid: #F5A800;
+            --category-transport: #007BFF;
+            --category-other: #6C757D;
+        }
+
+        .app-screen {
+            width: 100%;
+            max-width: 390px;
+            background-color: white;
+            min-height: 100vh;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            padding-bottom: 80px;
+        }
+
+        /* TOP BAR */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 25px 8px 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* HEADER */
+        .header-nav {
+            padding: 0 20px;
+            background-color: white;
+            padding-bottom: 20px;
+        }
+
+        .back-title {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            font-size: 18px;
+            color: var(--text-color);
+        }
+        .back-arrow {
+            cursor: pointer;
+            margin-right: 15px;
+            font-size: 20px;
+        }
+        .header-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0;
+        }
+        .header-subtitle {
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0 0 10px 0;
+            padding-top: 10px;
+        }
+        .header-description {
+            font-size: 15px;
+            color: #666;
+            margin: 0;
+        }
+
+        /* TABS */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+        .tab {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 18px;
+            background-color: #f0f0f0;
+            color: var(--text-color);
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s, color 0.2s;
+            white-space: nowrap;
+        }
+        .tab.active {
+            background-color: #000;
+            color: white;
+        }
+
+        /* CONTENT */
+        .content {
+            padding: 20px;
+            padding-top: 0;
+        }
+        
+        /* SUMMARY CARD - ОБЩИЕ РАСХОДЫ */
+        .summary-card {
+            background-color: var(--alfa-red);
+            color: white;
+            padding: 25px 20px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .summary-card p {
+            font-size: 15px;
+            font-weight: 500;
+            margin: 0;
+            opacity: 0.8;
+        }
+        .summary-card h2 {
+            font-size: 38px;
+            font-weight: 800;
+            margin: 5px 0 0 0;
+        }
+        
+        /* MEMBER CARDS */
+        .member-card {
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 1px solid #eee;
+        }
+
+        .member-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .member-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+        .member-header h3 i {
+            color: var(--alfa-red);
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        .member-amount {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--alfa-red);
+        }
+
+        .category-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .category-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 15px;
+            color: #555;
+            padding: 8px 0;
+            border-top: 1px solid #f0f0f0;
+        }
+        .category-item:first-child {
+            border-top: none;
+        }
+        .category-item span:first-child {
+            display: flex;
+            align-items: center;
+            color: var(--text-color);
+        }
+        .category-item i {
+            font-size: 8px;
+            margin-right: 8px;
+        }
+        .category-item span:last-child {
+            font-weight: 500;
+        }
+
+        .category-food i { color: var(--category-food); }
+        .category-kid i { color: var(--category-kid); }
+        .category-transport i { color: var(--category-transport); }
+        .category-other i { color: var(--category-other); }
+
+        /* BOTTOM NAV - Копируем из main_bank_screen.html */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 390px;
+            height: 70px;
+            background-color: white;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding-bottom: 5px; 
+            font-size: 11px;
+            color: #888;
+            z-index: 20;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            font-weight: 500;
+        }
+        .nav-item i {
+            font-size: 22px;
+            margin-bottom: 4px;
+        }
+        
+        /* Кнопка "История" активна на этом экране */
+        .nav-item:nth-child(4) i, .nav-item:nth-child(4) span { 
+            color: var(--alfa-red);
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-screen">
+    
+    <div class="top-bar">
+        <span>9:41</span>
+        <div class="status-icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-three-quarters"></i>
+        </div>
+    </div>
+
+    <header class="header-nav">
+        <div class="back-title">
+            <i class="fas fa-chevron-left back-arrow" id="navToAnalyticsHome"></i>
+            <h1 class="header-title">Октябрь</h1>
+        </div>
+        <h2 class="header-subtitle">Детализация расходов</h2>
+        <p class="header-description">
+            Подробная разбивка трат по каждому члену семьи.
+        </p>
+
+        <div class="tabs">
+            <button class="tab active" id="allTab">Все</button>
+            <button class="tab">Еда</button>
+            <button class="tab">Ребенок</button>
+            <button class="tab">Транспорт</button>
+            <button class="tab">Досуг</button>
+            <button class="tab">Прочее</button>
+        </div>
+    </header>
+
+    <main class="content">
+
+        <div class="summary-card">
+            <p>Общие расходы семьи за Октябрь:</p>
+            <h2>150 000 ₽</h2>
+        </div>
+        
+        <div class="member-card" id="member_child">
+            <div class="member-header">
+                <h3><i class="fas fa-child"></i> <span id="childNameDisplay">Ребенок</span></h3>
+                <span class="member-amount">30 000 ₽ (20%)</span>
+            </div>
+            <ul class="category-list">
+                <li class="category-item category-kid"><span><i class="fas fa-circle"></i> Детский сад</span><span>15 000 ₽</span></li>
+                <li class="category-item category-kid"><span><i class="fas fa-circle"></i> Игрушки</span><span>5 000 ₽</span></li>
+                <li class="category-item category-food"><span><i class="fas fa-circle"></i> Питание</span><span>10 000 ₽</span></li>
+            </ul>
+        </div>
+        
+        <div class="member-card" id="member_mother">
+            <div class="member-header">
+                 <h3><i class="fas fa-female"></i> <span id="motherNameDisplay">Мама</span></h3>
+                <span class="member-amount">52 500 ₽ (35%)</span>
+            </div>
+            <ul class="category-list">
+                <li class="category-item category-food"><span><i class="fas fa-circle"></i> Продукты</span><span>25 000 ₽</span></li>
+                <li class="category-item category-transport"><span><i class="fas fa-circle"></i> Такси</span><span>10 000 ₽</span></li>
+                <li class="category-item category-other"><span><i class="fas fa-circle"></i> Одежда</span><span>17 500 ₽</span></li>
+            </ul>
+        </div>
+        
+        <div class="member-card" id="member_father">
+            <div class="member-header">
+                <h3><i class="fas fa-male"></i> <span id="fatherNameDisplay">Папа</span></h3>
+                <span class="member-amount">67 500 ₽ (45%)</span>
+            </div>
+            <ul class="category-list">
+                <li class="category-item category-transport"><span><i class="fas fa-circle"></i> Топливо</span><span>30 000 ₽</span></li>
+                <li class="category-item category-other"><span><i class="fas fa-circle"></i> Подписки</span><span>15 000 ₽</span></li>
+                <li class="category-item category-food"><span><i class="fas fa-circle"></i> Рестораны</span><span>22 500 ₽</span></li>
+            </ul>
+        </div>
+        
+    </main>
+
+    <nav class="bottom-nav">
+        <div class="nav-item">
+            <i class="fas fa-home"></i>
+            <span>Главный</span>
+        </div>
+        <div class="nav-item">
+            <i class="fas fa-credit-card"></i>
+            <span class="badge one">1</span>
+            <span>Платежи</span>
+        </div>
+        <div class="nav-item">
+            <i class="fas fa-heart"></i>
+            <span>Выгода</span>
+        </div>
+        <div class="nav-item active-nav">
+            <i class="fas fa-history"></i>
+            <span>История</span>
+        </div>
+        <div class="nav-item">
+            <i class="fas fa-comment-dots"></i>
+            <span class="badge four">4</span>
+            <span>Чаты</span>
+        </div>
+    </nav>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        // --- ФУНКЦИЯ ЗАГРУЗКИ ИМЕН ИЗ LOCALSTORAGE (ИСПРАВЛЕНИЕ) ---
+        const getMemberName = (id, defaultName) => {
+            // Ключи: member_name_child, member_name_mother, member_name_father
+            return localStorage.getItem(`member_name_${id}`) || defaultName;
+        };
+
+        const childName = getMemberName('child', 'Ребенок');
+        const motherName = getMemberName('mother', 'Мама');
+        const fatherName = getMemberName('father', 'Папа');
+        
+        // Обновление имен в заголовках карточек
+        document.getElementById('childNameDisplay').textContent = childName;
+        document.getElementById('motherNameDisplay').textContent = motherName;
+        document.getElementById('fatherNameDisplay').textContent = fatherName;
+        
+        
+        // --- ЛОГИКА ПЕРЕХОДОВ И ЯКОРЕЙ (КОПИРОВАНИЕ) ---
+
+        // 1. Навигация назад к "Вся аналитика"
+        document.getElementById('navToAnalyticsHome').addEventListener('click', () => {
+            window.location.href = 'analytics_home.html'; 
+        });
+
+        // 2. Скроллинг к нужному якорю, если он указан в URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const scrollToId = urlParams.get('scrollTo');
+
+        if (scrollToId) {
+            const targetElement = document.getElementById(scrollToId);
+            if (targetElement) {
+                // Плавный скролл к элементу с небольшим отступом сверху
+                setTimeout(() => {
+                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100); 
+            }
+        }
+
+        // 3. Навигация по нижнему меню (заглушки)
+        document.querySelector('.bottom-nav .nav-item:first-child').addEventListener('click', () => {
+            window.location.href = 'main_bank_screen.html'; 
+        });
+        document.querySelector('.bottom-nav .nav-item:nth-child(2)').addEventListener('click', () => {
+             alert('Переход на Платежи');
+        });
+        document.querySelector('.bottom-nav .nav-item:nth-child(3)').addEventListener('click', () => {
+             alert('Переход на Выгоду');
+        });
+        document.querySelector('.bottom-nav .nav-item:nth-child(5)').addEventListener('click', () => {
+             alert('Переход на Чаты');
+        });
+    });
+</script>
+</body>
+</html>
