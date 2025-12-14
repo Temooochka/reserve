@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Настройка семьи</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Общие переменные и стили */
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+        }
+
+        :root {
+            --alfa-red: #EE3124;
+            --text-color: #333;
+            --bg-light-gray: #F7F7F7;
+        }
+
+        .app-screen {
+            width: 100%;
+            max-width: 390px;
+            background-color: white;
+            min-height: 100vh;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        /* HEADER */
+        .header-nav {
+            padding: 0 20px;
+        }
+
+        .back-title {
+            display: flex;
+            align-items: center;
+            padding: 15px 0 20px 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .back-arrow {
+            font-size: 20px;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+
+        .content {
+            padding: 0 20px 20px 20px;
+        }
+        
+        .section-title {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        /* MEMBER LIST ITEM (Стили как на скриншоте "Владик, Лера, Олег") */
+        .member-list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        .member-list-item:last-of-type {
+            border-bottom: none;
+        }
+
+        .member-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .member-initials {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #EE3124; /* Альфа-цвет */
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 600;
+            font-size: 18px;
+            margin-right: 15px;
+            /* Добавляем разные цвета для разнообразия, как на скриншоте */
+        }
+        .child-color { background-color: #B02727; } 
+        .mother-color { background-color: #EE3124; }
+        .father-color { background-color: #FF5722; }
+
+        .member-name {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .rename-action {
+            display: flex;
+            align-items: center;
+            color: #888;
+            font-size: 15px;
+        }
+
+        .rename-action i {
+            margin-left: 10px;
+            font-size: 16px;
+        }
+        
+        /* ADD BUTTON */
+        .add-member-button {
+            width: 100%;
+            background-color: #E24747; 
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-top: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(226, 71, 71, 0.3);
+            transition: background-color 0.2s;
+        }
+        .add-member-button i {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        /* МОДАЛЬНОЕ ОКНО ДЛЯ ПЕРЕИМЕНОВАНИЯ */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 300px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .modal-content h3 { margin-top: 0; font-size: 18px; }
+        .modal-content input {
+            width: 95%;
+            padding: 10px;
+            margin: 10px 0 20px 0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .modal-buttons button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        #modalSave {
+            background-color: var(--alfa-red);
+            color: white;
+        }
+        #modalCancel {
+            background-color: #ddd;
+            color: var(--text-color);
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="app-screen">
+    <header class="header-nav">
+        <div class="back-title">
+            <i class="fas fa-chevron-left back-arrow" id="navToAnalytics"></i>
+            <span>Настройка семьи</span>
+        </div>
+    </header>
+
+    <main class="content">
+
+        <div class="section-title">Члены семьи</div>
+
+        <div class="member-list">
+            <div class="member-list-item" data-member-id="child">
+                <div class="member-info">
+                    <div class="member-initials child-color" id="initials_child">Р</div>
+                    <span class="member-name" id="name_child">Ребенок</span>
+                </div>
+                <div class="rename-action">
+                    <span>Переименовать</span>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
+
+            <div class="member-list-item" data-member-id="mother">
+                <div class="member-info">
+                    <div class="member-initials mother-color" id="initials_mother">М</div>
+                    <span class="member-name" id="name_mother">Мама</span>
+                </div>
+                <div class="rename-action">
+                    <span>Переименовать</span>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
+
+            <div class="member-list-item" data-member-id="father">
+                <div class="member-info">
+                    <div class="member-initials father-color" id="initials_father">П</div>
+                    <span class="member-name" id="name_father">Папа</span>
+                </div>
+                <div class="rename-action">
+                    <span>Переименовать</span>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
+        </div>
+        
+        <button class="add-member-button">
+            <i class="fas fa-user-plus"></i> Добавить члена семьи
+        </button>
+
+    </main>
+    
+    <div id="renameModal" class="modal">
+        <div class="modal-content">
+            <h3>Переименовать</h3>
+            <input type="text" id="newNameInput" placeholder="Введите новое имя">
+            <div class="modal-buttons">
+                <button id="modalCancel">Отмена</button>
+                <button id="modalSave">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const memberItems = document.querySelectorAll('.member-list-item');
+        const navToAnalytics = document.getElementById('navToAnalytics');
+        const renameModal = document.getElementById('renameModal');
+        const newNameInput = document.getElementById('newNameInput');
+        const modalSave = document.getElementById('modalSave');
+        const modalCancel = document.getElementById('modalCancel');
+        
+        let currentMemberId = null; 
+
+        // --- Функция: Загрузка имен из localStorage ---
+        const loadNames = () => {
+            memberItems.forEach(item => {
+                const memberId = item.getAttribute('data-member-id');
+                const defaultNameMap = {
+                    'child': 'Ребенок',
+                    'mother': 'Мама',
+                    'father': 'Папа'
+                };
+                const defaultInitialMap = {
+                    'child': 'Р',
+                    'mother': 'М',
+                    'father': 'П'
+                };
+
+                // Загружаем имя из localStorage или берем дефолтное
+                const savedName = localStorage.getItem(`member_name_${memberId}`) || defaultNameMap[memberId];
+                
+                // Обновляем имя и инициал на экране
+                const nameElement = document.getElementById(`name_${memberId}`);
+                const initialsElement = document.getElementById(`initials_${memberId}`);
+
+                if (nameElement) {
+                    nameElement.textContent = savedName;
+                }
+                if (initialsElement) {
+                    // Используем первую букву имени как инициал
+                    initialsElement.textContent = savedName.charAt(0).toUpperCase();
+                }
+            });
+        };
+
+        // --- Функция: Сохранение имени в localStorage ---
+        const saveName = () => {
+            if (!currentMemberId) return;
+
+            const newName = newNameInput.value.trim();
+            const defaultNameMap = {
+                'child': 'Ребенок',
+                'mother': 'Мама',
+                'father': 'Папа'
+            };
+            
+            // Если поле пустое, сохраняем дефолтное имя
+            const nameToSave = newName || defaultNameMap[currentMemberId]; 
+            localStorage.setItem(`member_name_${currentMemberId}`, nameToSave);
+            
+            // Обновляем данные на экране и закрываем модалку
+            loadNames(); 
+            renameModal.style.display = 'none';
+        };
+
+
+        // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
+        
+        // Открытие модального окна при клике на элемент списка
+        memberItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                currentMemberId = item.getAttribute('data-member-id');
+                const currentName = document.getElementById(`name_${currentMemberId}`).textContent;
+                
+                // Устанавливаем текущее имя в поле ввода
+                newNameInput.value = currentName; 
+                newNameInput.placeholder = currentName;
+                renameModal.style.display = 'block';
+                newNameInput.focus();
+            });
+        });
+
+        // Кнопка "Сохранить" в модальном окне
+        modalSave.addEventListener('click', saveName);
+
+        // Кнопка "Отмена" в модальном окне
+        modalCancel.addEventListener('click', () => {
+            renameModal.style.display = 'none';
+        });
+
+        // Закрытие модального окна при клике вне него
+        window.addEventListener('click', (event) => {
+            if (event.target === renameModal) {
+                renameModal.style.display = 'none';
+            }
+        });
+        
+        // Переход обратно на экран аналитики
+        navToAnalytics.addEventListener('click', () => {
+            // При возвращении, страница analytics_home.html сама загрузит обновленные имена
+            window.location.href = 'analytics_home.html';
+        });
+        
+        // Заглушка для кнопки "Добавить члена семьи"
+        document.querySelector('.add-member-button').addEventListener('click', () => {
+            alert('Функционал добавления нового члена семьи не реализован.');
+        });
+
+
+        // Инициализация
+        loadNames();
+    });
+</script>
+</body>
+</html>
