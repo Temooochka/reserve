@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вся аналитика расходов</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+
+    <style>
+        /* Общие переменные и стили */
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+        }
+
+        :root {
+            --alfa-red: #EE3124;
+            /* Цвета для графика */
+            --red-c1-dark: #801818; 
+            --red-c2-medium: #C02929;
+            --red-c3-light: #EE3124; 
+            
+            --bg-light-gray: #F7F7F7;
+            --text-color: #333;
+            --card-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .app-screen {
+            width: 100%;
+            max-width: 390px;
+            background-color: white;
+            min-height: 100vh;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            padding-bottom: 80px;
+            overflow-x: hidden;
+        }
+
+        /* TOP BAR */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 25px 8px 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .status-icons i { margin-left: 5px; }
+
+        /* HEADER */
+        .header-nav {
+            padding: 0 20px;
+        }
+
+        .back-settings {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            font-size: 18px;
+            color: var(--text-color);
+        }
+        .settings-icon {
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .back-arrow {
+            cursor: pointer;
+        }
+
+        .month-selector {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+        }
+        .month-selector h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0;
+        }
+        .month-selector .arrows i {
+            font-size: 14px;
+            padding-left: 10px;
+            cursor: pointer;
+        }
+        .disabled-arrow {
+            color: #ccc;
+            cursor: default;
+        }
+
+        /* TABS */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 25px;
+        }
+        .tab {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 18px;
+            background-color: #f0f0f0;
+            color: var(--text-color);
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .tab.active {
+            background-color: #000;
+            color: white;
+        }
+
+        /* CONTENT & CARDS */
+        .content {
+            padding: 0 20px;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+
+        /* BANNER CARD (Семейная аналитика) */
+        .banner-card {
+            background-color: var(--bg-light-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .banner-text h3 {
+            font-size: 16px;
+            margin: 0 0 5px 0;
+            font-weight: 600;
+        }
+        .banner-text p {
+            font-size: 14px;
+            margin: 0;
+            color: #666;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .arrow-right {
+            font-size: 20px;
+            line-height: 0;
+            margin-left: 5px;
+        }
+
+        .alfa-icon-a {
+            width: 30px;
+            height: 30px;
+            background-color: var(--alfa-red);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        /* CHART CARD */
+        .chart-card {
+            padding: 20px 20px 10px 20px;
+            text-align: center;
+        }
+
+        .chart-canvas-wrapper {
+            max-width: 250px;
+            margin: 0 auto 10px auto;
+        }
+
+        .chart-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 10px;
+        }
+
+        .legend {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            text-align: left;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 16px;
+            line-height: 1.2;
+            font-weight: 500;
+            cursor: pointer; 
+        }
+        .legend-item b {
+            font-weight: 600;
+        }
+        .color-swatch {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        /* Цвета из скриншотов */
+        .c1 { background-color: var(--red-c1-dark); }
+        .c2 { background-color: var(--red-c2-medium); }
+        .c3 { background-color: var(--red-c3-light); } 
+
+        .actions i {
+            font-size: 22px;
+            color: #666;
+            margin-left: 20px;
+            cursor: pointer;
+        }
+
+        /* AI CARD (Рекомендации ИИ) */
+        .ai-card {
+            padding: 15px 20px;
+        }
+        .ai-button {
+            background: linear-gradient(90deg, #F06E66 30%, var(--alfa-red));
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 18px;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(238, 49, 36, 0.4);
+        }
+        .ai-button i {
+            font-size: 10px;
+            margin-left: 5px;
+            color: white;
+        }
+        
+        /* BOTTOM NAV */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 390px;
+            height: 70px;
+            background-color: white;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding-bottom: 5px; 
+            font-size: 11px;
+            color: #888;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+            font-weight: 500;
+        }
+        .nav-item i {
+            font-size: 22px;
+            margin-bottom: 4px;
+        }
+
+        .badge {
+            position: absolute;
+            top: 0px; 
+            right: 50%;
+            transform: translateX(120%);
+            background-color: var(--alfa-red);
+            color: white;
+            border-radius: 50%;
+            font-size: 10px;
+            width: 15px;
+            height: 15px;
+            line-height: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        /* Кнопка "История" активна на этом экране */
+        .nav-item:nth-child(4) i, .nav-item:nth-child(4) span { 
+            color: var(--alfa-red);
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-screen">
+    
+    <div class="top-bar">
+        <span>9:41</span>
+        <div class="status-icons">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi"></i>
+            <i class="fas fa-battery-three-quarters"></i>
+        </div>
+    </div>
+
+    <header class="header-nav">
+        <div class="back-settings">
+            <i class="fas fa-chevron-left back-arrow" id="navToMain"></i>
+            <i class="fas fa-exchange-alt settings-icon" id="navToSettings"></i> 
+        </div>
+        
+        <div class="month-selector">
+            <h1>Октябрь</h1>
+            <div class="arrows">
+                <i class="fas fa-chevron-left disabled-arrow"></i>
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab" id="expensesTab">Расходы</button>
+            <button class="tab" id="incomeTab">Доходы</button>
+            <button class="tab active" id="allAnalyticsTab">Вся аналитика</button>
+        </div>
+    </header>
+
+    <main class="content">
+
+        <div class="card banner-card" id="navToFamilyAnalytics">
+            <div class="banner-text">
+                <h3>Семейная аналитика расходов</h3>
+                <p>Статистика по семейным тратам <span class="arrow-right">→</span></p>
+            </div>
+            <div class="alfa-icon-a">A</div>
+        </div>
+
+        <div class="card chart-card">
+            <div class="chart-canvas-wrapper">
+                <canvas id="expenseChart"></canvas>
+            </div>
+            
+            <div class="chart-footer">
+                <ul class="legend">
+                    <li class="legend-item" data-segment-id="member_child"><span class="color-swatch c1"></span>Ребенок: <b>30 000 ₽</b></li>
+                    <li class="legend-item" data-segment-id="member_mother"><span class="color-swatch c2"></span>Мама: <b>52 500 ₽</b></li>
+                    <li class="legend-item" data-segment-id="member_father"><span class="color-swatch c3"></span>Папа: <b>67 500 ₽</b></li>
+                </ul>
+
+                <div class="actions">
+                    <i class="fas fa-pencil-alt" id="navToRename"></i> 
+                    <i class="fas fa-download" id="navToImport"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="card banner-card ai-card" id="navToRecommendationsCard">
+            <div class="banner-text">
+                <h3>Рекомендации ИИ</h3>
+                <p>На базе семейных расходов <span class="arrow-right">→</span></p>
+            </div>
+            <button class="ai-button" id="navToRecommendationsButton">Альфа-ИИ<i class="fas fa-plus-circle"></i></button>
+        </div>
+
+    </main>
+
+    <nav class="bottom-nav">
+        <div class="nav-item" id="navToMainBottom">
+            <i class="fas fa-home"></i>
+            <span>Главный</span>
+        </div>
+        <div class="nav-item">
+            <i class="fas fa-credit-card"></i>
+            <span class="badge one">1</span>
+            <span>Платежи</span>
+        </div>
+        <div class="nav-item">
+            <i class="fas fa-heart"></i>
+            <span>Выгода</span>
+        </div>
+        <div class="nav-item active-nav">
+            <i class="fas fa-history"></i>
+            <span>История</span>
+        </div>
+        <div class="nav-item">
+            <i class="fas fa-comment-dots"></i>
+            <span class="badge four">4</span>
+            <span>Чаты</span>
+        </div>
+    </nav>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        // Карта сегментов диаграммы и их целей (ID элемента в details_expenses.html)
+        const segmentTargets = {
+            0: 'member_child',  
+            1: 'member_mother', 
+            2: 'member_father'  
+        };
+        
+        // --- Функция: Загрузка имен из localStorage (для поддержки переименования) ---
+        // Имена "Ребенок", "Мама", "Папа" используются как дефолтные/ключи.
+        // Имена "Лера" и "Олег" (из скриншотов) могут быть сохранены через settings_family.html
+        const getMemberName = (id, defaultName) => {
+            // Для демо используем жесткий маппинг из скриншота, если нет в localStorage:
+            if (id === 'child') return localStorage.getItem(`member_name_${id}`) || 'Ребенок';
+            if (id === 'mother') return localStorage.getItem(`member_name_${id}`) || 'Мама';
+            if (id === 'father') return localStorage.getItem(`member_name_${id}`) || 'Папа';
+            return defaultName;
+        };
+
+        const childName = getMemberName('child', 'Ребенок');
+        const motherName = getMemberName('mother', 'Мама');
+        const fatherName = getMemberName('father', 'Папа');
+
+        // --- ЛОГИКА ГРАФИКА (с анимацией и кликом) ---
+        const ctx = document.getElementById('expenseChart').getContext('2d');
+        const expenseChart = new Chart(ctx, {
+            type: 'doughnut', 
+            data: {
+                // Используем динамические имена
+                labels: [childName, motherName, fatherName], 
+                datasets: [{
+                    data: [20, 35, 45], // Процентное соотношение расходов
+                    backgroundColor: ['#801818', '#C02929', '#EE3124'],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                aspectRatio: 1, 
+                cutout: '70%', 
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: true }
+                },
+                animation: {
+                    animateRotate: true,
+                    animateScale: true,
+                    duration: 1000
+                },
+                onClick: (e, elements) => {
+                    if (elements.length > 0) {
+                        const clickedElement = elements[0];
+                        const segmentIndex = clickedElement.index; 
+                        const targetId = segmentTargets[segmentIndex];
+
+                        if (targetId) {
+                            window.location.href = `details_expenses.html?scrollTo=${targetId}`; 
+                        }
+                    }
+                }
+            }
+        });
+        
+        // --- Обновление HTML легенды ---
+        const updateHTMLLegend = () => {
+            // Имя: **Сумма ₽**
+            document.querySelector('[data-segment-id="member_child"]').innerHTML = 
+                `<span class="color-swatch c1"></span>${childName}: <b>30 000 ₽</b>`;
+            
+            document.querySelector('[data-segment-id="member_mother"]').innerHTML = 
+                `<span class="color-swatch c2"></span>${motherName}: <b>52 500 ₽</b>`;
+            
+            document.querySelector('[data-segment-id="member_father"]').innerHTML = 
+                `<span class="color-swatch c3"></span>${fatherName}: <b>67 500 ₽</b>`;
+        };
+        
+        updateHTMLLegend();
+
+
+        // --- ЛОГИКА ПЕРЕХОДОВ ---
+        
+        // Функция перехода на детализацию с якорем
+        const navigateToDetails = (targetId) => {
+            window.location.href = `details_expenses.html?scrollTo=${targetId}`;
+        };
+
+        // 1. Переход на Главный экран (Стрелка Назад и нижнее меню)
+        document.getElementById('navToMain').addEventListener('click', () => {
+            window.location.href = 'main_bank_screen.html'; 
+        });
+        document.getElementById('navToMainBottom').addEventListener('click', () => {
+             window.location.href = 'main_bank_screen.html'; 
+        });
+        
+        // 2. Переход на Детализацию расходов (Расходы Tab)
+        document.getElementById('expensesTab').addEventListener('click', () => {
+             window.location.href = 'details_expenses.html'; 
+        });
+        
+        // 3. Переход на настройки семьи (Иконка Карандаша)
+        document.getElementById('navToRename').addEventListener('click', () => {
+            window.location.href = 'settings_family.html'; 
+        });
+        
+        // 4. Переход на Импорт данных (Иконка Загрузки)
+        document.getElementById('navToImport').addEventListener('click', () => {
+            window.location.href = 'import_data.html'; // Исправлено на правильный файл
+        });
+
+        // 5. Переход на Рекомендации ИИ (Кнопка Альфа-ИИ)
+        const navToRecommendations = () => {
+            window.location.href = 'ai_recommendations.html'; 
+        };
+        document.getElementById('navToRecommendationsButton').addEventListener('click', navToRecommendations);
+        document.getElementById('navToRecommendationsCard').addEventListener('click', navToRecommendations);
+        
+        // 6. Переход на Семейную аналитику (Карточка) - ведет на детализацию
+        document.getElementById('navToFamilyAnalytics').addEventListener('click', () => {
+            window.location.href = 'details_expenses.html'; 
+        });
+
+        // 7. Обработка клика по легенде 
+        document.querySelectorAll('.legend-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const targetId = e.currentTarget.getAttribute('data-segment-id');
+                if (targetId) {
+                    navigateToDetails(targetId);
+                }
+            });
+        });
+        
+        // 8. Обработчики табов
+        // Переход на Доходы
+        document.getElementById('incomeTab').addEventListener('click', () => {
+             // Сначала делаем таб активным (для визуального эффекта)
+             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+             document.getElementById('incomeTab').classList.add('active');
+             // Осуществляем переход
+             window.location.href = 'details_income.html'; 
+        });
+        
+        // Заглушка для иконки "Настройки/Сортировка"
+        document.getElementById('navToSettings').addEventListener('click', () => {
+            alert('Сортировка/Фильтрация не реализована.');
+        });
+    });
+</script>
+</body>
+</html>
