@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Детализация доходов</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+
+    <style>
+        /* Общие стили */
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            padding-bottom: 80px;
+        }
+
+        :root {
+            --alfa-red: #EE3124;
+            --alfa-green: #387B44; 
+            --green-c1-dark: #2A5A35;
+            --green-c2-medium: #387B44;
+            --green-c3-light: #5BAA69;
+            --text-color: #333;
+            --card-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .app-screen {
+            width: 100%;
+            max-width: 390px;
+            background-color: white;
+            min-height: 100vh;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* HEADER */
+        .header-nav { padding: 0 20px; }
+        .back-settings {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0 15px 0;
+            font-size: 18px;
+        }
+        .back-arrow { cursor: pointer; }
+        
+        /* TABS */
+        .tabs { display: flex; gap: 8px; margin-bottom: 25px; }
+        .tab {
+            padding: 6px 12px; border: none; border-radius: 18px;
+            background-color: #f0f0f0; color: var(--text-color);
+            font-size: 14px; cursor: pointer; font-weight: 500;
+        }
+        .tab.active { background-color: #000; color: white; }
+        .current-title { font-size: 28px; font-weight: 600; margin: 0 0 15px 0; }
+
+        /* CHART CARD & LEGEND */
+        .content { padding: 0 20px; }
+        .chart-card {
+            background-color: white; border-radius: 20px; box-shadow: var(--card-shadow);
+            margin-bottom: 20px; padding: 20px; text-align: center;
+        }
+        .chart-canvas-wrapper { max-width: 250px; margin: 0 auto 20px auto; }
+        .total-income { font-size: 32px; font-weight: 700; color: var(--alfa-green); margin-bottom: 20px; }
+        
+        .legend { list-style: none; padding: 0; margin: 0; text-align: left; }
+        .legend-item {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 15px; font-size: 16px; font-weight: 500;
+            padding-bottom: 5px; border-bottom: 1px solid #eee;
+        }
+        .legend-name { display: flex; align-items: center; font-weight: 600; }
+        .color-swatch {
+            display: inline-block; width: 14px; height: 14px; border-radius: 50%; margin-right: 10px;
+        }
+
+        .c1 { background-color: var(--green-c1-dark); }
+        .c2 { background-color: var(--green-c2-medium); }
+        .c3 { background-color: var(--green-c3-light); }
+
+        /* BOTTOM NAV */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 390px; height: 70px; background-color: white;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05); display: flex;
+            justify-content: space-around; align-items: center; padding-bottom: 5px; 
+            font-size: 11px; color: #888;
+        }
+        .nav-item i { font-size: 22px; margin-bottom: 4px; }
+        .nav-item:nth-child(4) i, .nav-item:nth-child(4) span { color: var(--alfa-red); }
+    </style>
+</head>
+<body>
+
+<div class="app-screen">
+    <div class="header-nav">
+        <div class="back-settings">
+            <i class="fas fa-chevron-left back-arrow" id="navToAnalytics"></i>
+            <i class="fas fa-exchange-alt settings-icon" id="navToSettings"></i>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab" id="expensesTab">Расходы</button>
+            <button class="tab active" id="incomeTab">Доходы</button>
+            <button class="tab" id="allAnalyticsTab">Вся аналитика</button>
+        </div>
+        <h1 class="current-title">Доходы за Октябрь</h1>
+    </div>
+
+    <main class="content">
+
+        <div class="chart-card">
+            <div class="income-title">Общий доход</div>
+            <div class="total-income">250 000 ₽</div>
+            
+            <div class="chart-canvas-wrapper">
+                <canvas id="incomeChart"></canvas>
+            </div>
+            
+            <ul class="legend" id="incomeLegend">
+                </ul>
+        </div>
+
+    </main>
+
+    <nav class="bottom-nav">
+        <div class="nav-item" id="navToMainBottom">
+            <i class="fas fa-home"></i>
+            <span>Главный</span>
+        </div>
+        <div class="nav-item">
+            <i class="fas fa-credit-card"></i>
+            <span>Платежи</span>
+        </div>
+        <div class="nav-item">
+            <i class="fas fa-heart"></i>
+            <span>Выгода</span>
+        </div>
+        <div class="nav-item active-nav">
+            <i class="fas fa-history"></i>
+            <span>История</span>
+        </div>
+        <div class="nav-item">
+            <i class="fas fa-comment-dots"></i>
+            <span>Чаты</span>
+        </div>
+    </nav>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // --- КЛЮЧЕВАЯ ФУНКЦИЯ ДЛЯ ЗАГРУЗКИ ИМЕН ---
+        const getMemberName = (id, defaultName) => {
+            // Загружаем имя из localStorage по ключу member_name_ID. Если нет, используем дефолтное.
+            return localStorage.getItem(`member_name_${id}`) || defaultName;
+        };
+
+        const childName = getMemberName('child', 'Ребенок');
+        const motherName = getMemberName('mother', 'Мама');
+        const fatherName = getMemberName('father', 'Папа');
+        
+        // Данные для графика доходов (Пример)
+        const incomeData = [
+            // ИСПОЛЬЗУЕМ ДИНАМИЧЕСКИЕ ИМЕНА
+            { id: 'father', name: fatherName, amount: 150000, percentage: 60, color: '#2A5A35' }, 
+            { id: 'mother', name: motherName, amount: 80000, percentage: 32, color: '#387B44' }, 
+            { id: 'child', name: childName, amount: 20000, percentage: 8, color: '#5BAA69' }, 
+        ];
+        
+        // --- ЛОГИКА ГРАФИКА ---
+        const ctx = document.getElementById('incomeChart').getContext('2d');
+        const incomeChart = new Chart(ctx, {
+            type: 'doughnut', 
+            data: {
+                labels: incomeData.map(d => d.name),
+                datasets: [{
+                    data: incomeData.map(d => d.percentage),
+                    backgroundColor: incomeData.map(d => d.color),
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                aspectRatio: 1, 
+                cutout: '70%', 
+                plugins: { legend: { display: false }, tooltip: { enabled: true } },
+                animation: { duration: 1000 },
+                onClick: (e, elements) => {
+                    if (elements.length > 0) {
+                       alert(`Детализация доходов для: ${incomeData[elements[0].index].name}`);
+                    }
+                }
+            }
+        });
+        
+        // --- Обновление HTML легенды (с динамическими именами) ---
+        const updateHTMLLegend = () => {
+            const legendContainer = document.getElementById('incomeLegend');
+            legendContainer.innerHTML = ''; 
+            
+            incomeData.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = 'legend-item';
+                const colorClass = `c${index + 1}`; 
+
+                li.innerHTML = `
+                    <div class="legend-name">
+                        <span class="color-swatch ${colorClass}"></span>${item.name}
+                    </div>
+                    <span>
+                        <b>${item.amount.toLocaleString('ru-RU')} ₽</b> (${item.percentage}%)
+                    </span>
+                `;
+                legendContainer.appendChild(li);
+            });
+        };
+        
+        updateHTMLLegend();
+
+
+        // --- ЛОГИКА ПЕРЕХОДОВ ---
+        
+        document.getElementById('navToAnalytics').addEventListener('click', () => {
+            window.location.href = 'analytics_home.html'; 
+        });
+        document.getElementById('allAnalyticsTab').addEventListener('click', () => {
+             window.location.href = 'analytics_home.html'; 
+        });
+        document.getElementById('expensesTab').addEventListener('click', () => {
+             window.location.href = 'details_expenses.html'; 
+        });
+        document.getElementById('navToMainBottom').addEventListener('click', () => {
+             window.location.href = 'main_bank_screen.html'; 
+        });
+        document.getElementById('navToSettings').addEventListener('click', () => {
+            alert('Сортировка/Фильтрация не реализована.');
+        });
+    });
+</script>
+</body>
+</html>
